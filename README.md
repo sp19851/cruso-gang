@@ -4,7 +4,7 @@ Cruso_sellers — это простенький скрипт для **RP** се�
 Для его использования нужно [установить](https://github.com/qbcore-framework) фреймворк.
 
 ## Зависимости
-- QbCore ((https://github.com/qbcore-framework);
+- QbCore (https://github.com/qbcore-framework);
 - Ox_lib (https://github.com/overextended/overextended.github.io);
 
  ## Разработчик Mr.Cruso 
