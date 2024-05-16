@@ -7,6 +7,7 @@ local Peds = {}
 
 --Functions--
 local function GetItemLabel(item)
+    --print('^1Item: ^3['..item..']^1 ')
     if QBCore.Shared and QBCore.Shared.Items and QBCore.Shared.Items[item] then
         return QBCore.Shared.Items[item].label
     else
@@ -33,7 +34,7 @@ local function loadAnimDict(animDict)
 end
 
 
-local function editItemMenu(index, item)
+function editItemMenu(index, item)
     print("editItemMenu" , index, json.encode(item))
     lib.registerContext({
         id = 'itemMenu',
@@ -47,7 +48,7 @@ local function editItemMenu(index, item)
                     print("Выставить", input[1])
                     if QBCore.Functions.HasItem(item.name, tonumber(input[1])) then
                         item.count = item.count + tonumber(input[1])
-                        TriggerServerEvent('cruso-sellers:server:update', index, item, tonumber(input[1]))
+                        TriggerServerEvent('cruso-sellers:server:update', "put", index, item, tonumber(input[1]))
                     else
                         QBCore.Functions.Notify('У Вас нет такого предмета или требуемого количества', 'error', 5000)
                     end
@@ -57,12 +58,15 @@ local function editItemMenu(index, item)
             },
             {
                 title = 'Забрать остатки: '..item.count..' шт.',
+                onSelect = function()
+                    TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count)
+                end,
             },
             {
                 title = 'Назад',
                 icon = 'left-long',
-                onBack = function()
-                    print('Went back!')
+                onSelect = function()
+                    productMenu(index)
                 end,
             }
         }
@@ -70,7 +74,7 @@ local function editItemMenu(index, item)
     lib.showContext('itemMenu')
 end
 
-local function productMenu(index)
+function productMenu(index)
     print("товары на продажу индекс" , index)
     QBCore.Functions.TriggerCallback('cruso-sellers:server:GetData', function(result)
         print("result" , #result, json.encode(result))
@@ -169,12 +173,11 @@ local function createPed(index, pointData)
     
     Peds[index] = CreatePed(0, GetHashKey(pointData.ped_model), pointData.coords.x, pointData.coords.y, pointData.coords.z-1, pointData.coords.w, false, false)
     loadAnimDict(pointData.animDic)
+    PlaceObjectOnGroundProperly(Peds[index])
     TaskPlayAnim(Peds[index], pointData.animDic, pointData.anim, 1.0, 1.0, -1, 16, 0, false, false, false)
-    
-
     SetEntityInvincible(Peds[index], true)
     SetBlockingOfNonTemporaryEvents(Peds[index], true)
-    FreezeEntityPosition(Peds[index], true)
+    --FreezeEntityPosition(Peds[index], true)
     exports['qb-target']:AddTargetEntity(Peds[index], {
         options = {
             {
