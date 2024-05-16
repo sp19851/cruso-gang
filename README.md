@@ -1,10 +1,10 @@
 # Cruso_sellers
 
 Cruso_sellers — это простенький скрипт для **RP** серверов **FievM** под **QBCore**энциклопедия для веб-разработчиков.
-Для его использования нужно установить [установить]([https://doka.guide](https://github.com/qbcore-framework) фреймворк.
+Для его использования нужно [установить](https://github.com/qbcore-framework) фреймворк.
 
 ## Зависимости
-- QbCore ([https://doka.guide](https://github.com/qbcore-framework);
+- QbCore ((https://github.com/qbcore-framework);
 - Ox_lib (https://github.com/overextended/overextended.github.io);
 
  ## Разработчик Mr.Cruso 
