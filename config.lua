@@ -1,6 +1,7 @@
 Config = {}
 Config.DB = {
-    table_name = 'cruso_sellers'
+    table_name = 'cruso_sellers',
+    table_name2 = 'cruso_sellers_accounts'
 }
 
 --!!!id may contain a unique value corresponding to the key in the database!!!---
@@ -29,7 +30,7 @@ Config.Points = {
    
  }
 }
-
+-- !!!name Items element must  unique ---
 Config.Items = {
     ["public"] = {
         cooldown = 60000*1,--множитель это количество минут,

@@ -142,29 +142,37 @@ function productMenu(index)
 end
 
 local function openShop(index)
-    
-    lib.registerContext({
-        id = 'shopMenu',
-        title = 'Меню магазина',
-        options = {
-          {
-            title = 'Товар на продажу',
-            description = 'Настройка продаж',
-            icon = 'rectangle-list',
-            --menu = 'productMenu',
-            onSelect = function()
-                productMenu(index)
-            end,
-          },
-          {
-            title = 'Забрать деньги',
-            description = 'Продано товаров на $[...]',
-            icon = 'money-bill-1',
-          },
-          
-        }
-      })
-    lib.showContext('shopMenu')
+    QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
+        print("result[0]", json.encode(result[1]))
+        local cash = result[1].account
+        lib.registerContext({
+            id = 'shopMenu',
+            title = 'Меню магазина',
+            options = {
+            {
+                title = 'Товар на продажу',
+                description = 'Настройка продаж',
+                icon = 'rectangle-list',
+                --menu = 'productMenu',
+                onSelect = function()
+                    productMenu(index)
+                end,
+            },
+            {
+                title = 'Забрать деньги',
+                description = 'Продано товаров на $'..cash,
+                icon = 'money-bill-1',
+                serverEvent = 'cruso-sellers:server:getMoney',
+                args = {
+                    index = index,
+                    cash = cash
+                  }
+            },
+            
+            }
+        })
+        lib.showContext('shopMenu')
+    end, index)
 end
 
 local function createPed(index, pointData)
