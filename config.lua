@@ -1,5 +1,8 @@
 Config = {}
 --!!!id may contain a unique value corresponding to the key in the database!!!---
+Config.DB = {
+    table_name = 'cruso_sellers'
+}
 Config.Points = {
  [1] = {
     Id = 1,
@@ -19,8 +22,8 @@ Config.Items = {
     ["public"] = {
         cooldown = 60000*1,--множитель это количество минут,
         items = {
-            [1] = {name = "beer",amount = 1, price = 5},
-            [2] = {name = "meth",amount = 2, price = 50},
+            ["beer"] = {amount = 1, price = 5},
+            ["meth"] = {amount = 2, price = 50},
         }
     }
 }
