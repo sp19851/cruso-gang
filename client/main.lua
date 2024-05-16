@@ -2,10 +2,31 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerData = QBCore.Functions.GetPlayerData()
 local pedSpawned = false
 local Peds = {}
+local MenuList = {}
+local needControlMenu = false
+local sleepControlMenu = 1000
 
 
 
 --Functions--
+local function IsRightMenu(id)
+    for i, menu in pairs(MenuList) do
+        if (menu.menuId == id) then
+            return true, menu.index
+        end
+    end
+    return false
+end
+
+local function GetIndexBusyPoint()
+    for i, point in pairs(Config.Points) do
+        if (point.isbusy) then
+            return true, i
+        end
+    end
+    return false
+end
+
 local function GetItemLabel(item)
     --print('^1Item: ^3['..item..']^1 ')
     if QBCore.Shared and QBCore.Shared.Items and QBCore.Shared.Items[item] then
@@ -17,25 +38,21 @@ local function GetItemLabel(item)
 end
 
 local function loadModel(model)
-    print("loadModel" , model)
     RequestModel(model)
     while not HasModelLoaded(model) do
         Wait(0)
     end
-    print("loadModel done")
 end
 local function loadAnimDict(animDict)
-    print("loadAnimDict" , animDict)
     RequestAnimDict(animDict)
     while not HasAnimDictLoaded(animDict) do
         Wait(0)
     end
-    print("loadMloadAnimDic done")
 end
 
 
 function editItemMenu(index, item)
-    print("editItemMenu" , index, json.encode(item))
+    MenuList[#MenuList+1] = {menuId = 'itemMenu', index = index}
     lib.registerContext({
         id = 'itemMenu',
         title = 'Настройка продажи '..GetItemLabel(item.name),
@@ -45,9 +62,22 @@ function editItemMenu(index, item)
                 onSelect = function()
                     local input = lib.inputDialog('Сколько Вы ходите выставить?', {'Количество'})
                     if not input then return end
-                    print("Выставить", input[1])
                     if QBCore.Functions.HasItem(item.name, tonumber(input[1])) then
                         item.count = item.count + tonumber(input[1])
+                        if lib.progressBar({
+                            duration = 10000,
+                            label = 'Передаем товар',
+                            useWhileDead = false,
+                            canCancel = false,
+                            disable = {
+                                car = true,
+                            },
+                            anim = {
+                                dict = 'gestures@f@standing@casual',
+                                clip = 'gesture_point'
+                            },
+                            
+                        }) then print('Do stuff when complete') else print('Do stuff when cancelled') end
                         TriggerServerEvent('cruso-sellers:server:update', "put", index, item, tonumber(input[1]))
                     else
                         QBCore.Functions.Notify('У Вас нет такого предмета или требуемого количества', 'error', 5000)
@@ -59,6 +89,20 @@ function editItemMenu(index, item)
             {
                 title = 'Забрать остатки: '..item.count..' шт.',
                 onSelect = function()
+                    if lib.progressBar({
+                        duration = 10000,
+                        label = 'Забираем товар',
+                        useWhileDead = false,
+                        canCancel = false,
+                        disable = {
+                            car = true,
+                        },
+                        anim = {
+                            dict = 'gestures@f@standing@casual',
+                            clip = 'gesture_point'
+                        },
+                        
+                    }) then print('Do stuff when complete') else print('Do stuff when cancelled') end
                     TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count)
                 end,
             },
@@ -75,29 +119,20 @@ function editItemMenu(index, item)
 end
 
 function productMenu(index)
-    print("товары на продажу индекс" , index)
     QBCore.Functions.TriggerCallback('cruso-sellers:server:GetData', function(result)
-        print("result" , #result, json.encode(result))
         if (#result ~= 0) then
             local nameproducte = Config.Points[index].items
-            print("nameproducte", nameproducte)
             local _options = {}
             for i, product in pairs(Config.Items[nameproducte].items) do
-                 print(i, "-->", json.encode(product))
                  product.name = i
                  --local amount = 0
                  product.count = 0
                  for _, itemDB in pairs(result) do
-                    print(i, ">>>", json.encode(itemDB))
                     if (itemDB.item == i) then
-                        print("***", i)
                         product.count = itemDB.amount
-                        print("***", product.count)
                         break
                     end
                  end
-                 
-
                  _options[i] = {
                      title = GetItemLabel(i),
                      description = 'Стоимость за шт. - $'..product.price.. '. Остаток: '..product.count..' шт.',
@@ -107,6 +142,7 @@ function productMenu(index)
                  }
                  
             end
+            MenuList[#MenuList+1] = {menuId = 'productMenu', index = index}
             lib.registerContext({
                  id = 'productMenu',
                  title = 'Меню продаж',
@@ -114,10 +150,8 @@ function productMenu(index)
              })
         else 
            local nameproducte = Config.Points[index].items
-           print("nameproducte", nameproducte)
            local _options = {}
            for i, product in pairs(Config.Items[nameproducte].items) do
-                print(i, "-->", json.encode(product))
                 product.name = i
                 product.count = 0
                 _options[i] = {
@@ -127,8 +161,8 @@ function productMenu(index)
                         editItemMenu(index, product)
                     end,
                 }
-                
            end
+           MenuList[#MenuList+1] = {menuId = 'productMenu', index = index}
            lib.registerContext({
                 id = 'productMenu',
                 title = 'Меню продаж',
@@ -142,43 +176,50 @@ function productMenu(index)
 end
 
 local function openShop(index)
-    QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
-        print("result[0]", json.encode(result[1]))
-        local cash = result[1].account
-        lib.registerContext({
-            id = 'shopMenu',
-            title = 'Меню магазина',
-            options = {
-            {
-                title = 'Товар на продажу',
-                description = 'Настройка продаж',
-                icon = 'rectangle-list',
-                --menu = 'productMenu',
-                onSelect = function()
-                    productMenu(index)
-                end,
-            },
-            {
-                title = 'Забрать деньги',
-                description = 'Продано товаров на $'..cash,
-                icon = 'money-bill-1',
-                serverEvent = 'cruso-sellers:server:getMoney',
-                args = {
-                    index = index,
-                    cash = cash
-                  }
-            },
-            
-            }
-        })
-        lib.showContext('shopMenu')
+    QBCore.Functions.TriggerCallback('cruso-sellers:server:isCanInteract', function(result)
+        if not result  then
+            QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
+                local cash = result[1].account
+                MenuList[#MenuList+1] = {menuId = 'shopMenu', index = index}
+                needControlMenu = true
+                lib.registerContext({
+                    id = 'shopMenu',
+                    title = 'Меню магазина',
+                    options = {
+                    {
+                        title = 'Товар на продажу',
+                        description = 'Настройка продаж',
+                        icon = 'rectangle-list',
+                        --menu = 'productMenu',
+                        onSelect = function()
+                            productMenu(index)
+                        end,
+                    },
+                    {
+                        title = 'Забрать деньги',
+                        description = 'Продано товаров на $'..cash,
+                        icon = 'money-bill-1',
+                        serverEvent = 'cruso-sellers:server:getMoney',
+                        args = {
+                            index = index,
+                            cash = cash
+                          }
+                    },
+                    
+                    }
+                })
+                lib.showContext('shopMenu')
+            end, index)
+        else
+            QBCore.Functions.Notify('Парень не в настроении разговаривать, подойдите позже', 'error', 5000)
+        end
     end, index)
+    
 end
 
 local function createPed(index, pointData)
     if pedSpawned then return end
     loadModel(pointData.ped_model)
-    
     Peds[index] = CreatePed(0, GetHashKey(pointData.ped_model), pointData.coords.x, pointData.coords.y, pointData.coords.z-1, pointData.coords.w, false, false)
     loadAnimDict(pointData.animDic)
     PlaceObjectOnGroundProperly(Peds[index])
@@ -200,12 +241,11 @@ local function createPed(index, pointData)
         },
         distance = 2.0
     })
-        
+     
 end
 
 local function deletePeds()
     if not pedSpawned then return end
-
     for _, v in pairs(ShopPed) do
         DeletePed(v)
     end
@@ -224,7 +264,19 @@ RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    deletePeds()
     PlayerData = {}
+end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() ~= resourceName then return end
+    MenuList = {}
+    deletePeds()
+end)
+
+RegisterNetEvent('cruso-sellers:client:setBusy')
+AddEventHandler('cruso-sellers:client:setBusy', function(data)
+    Config.Points = data
 end)
 
 -----Threads----
@@ -234,4 +286,28 @@ Citizen.CreateThread(function()
     for index, point in pairs(Config.Points) do
         createPed(index, point)
     end
-end)     
+    pedSpawned = true 
+end)   
+
+--IsMenuOpen---
+Citizen.CreateThread(function()
+    while true do
+        if (needControlMenu) then
+            local id = lib.getOpenContextMenu()
+            local rigthmenu, index = IsRightMenu(id)
+            if (rigthmenu) then
+                sleepControlMenu = 100
+                print("Config.Points[index]", Config.Points[index].isbusy)
+                if (Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
+            else
+                local isFinded, index = GetIndexBusyPoint()
+                print("GetIndexBusyPoint", isFinded, index, Config.Points[index].isbusy)
+                if (isFinded and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
+                sleepControlMenu = 1000
+                needControlMenu = false
+            end
+        end
+        Citizen.Wait(sleepControlMenu)
+    end
+    
+end)

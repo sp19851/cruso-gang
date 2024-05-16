@@ -21,7 +21,5 @@ server_scripts {
 }
 dependency {
     'qb-core',
-    'oxmysql',
-    'qb-target',
     'ox_lib'
 }

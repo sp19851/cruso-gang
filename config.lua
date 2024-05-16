@@ -15,6 +15,7 @@ Config.Points = {
     items = "public", --названия набора итемов, должно совпадать с ключом в Config.Items
     targetLabel = 'Взаимодействовать',
     targetIcon = 'fas fa-shopping-basket',
+    isbusy = false,
     job   = {['sheriff'] = 0, ["police"] = 0},
     gang   = {['crime'] = 0},
  },
@@ -27,20 +28,20 @@ Config.Points = {
     items = "public2", --названия набора итемов, должно совпадать с ключом в Config.Items
     targetLabel = 'Взаимодействовать',
     targetIcon = 'fas fa-shopping-basket',
-   
+    isbusy = false
  }
 }
 -- !!!name Items element must  unique ---
 Config.Items = {
     ["public"] = {
-        cooldown = 60000*1,--множитель это количество минут,
+        cooldown = 60000*10,--множитель это количество минут,
         items = {
             ["cokebaggy"] = {amount = 1, price = 85},
             ["meth"] = {amount = 2, price = 50},
         }
     },
     ["public2"] = {
-        cooldown = 60000*1,--множитель это количество минут,
+        cooldown = 60000*10,--множитель это количество минут,
         items = {
             
             ["kurkakola"] = {amount = 1, price = 2},

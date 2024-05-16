@@ -13,15 +13,11 @@ local function GetConfigItems(id_sellers)
 end
 
 local function SellItems(id_sellers)
-    print("SellItems", id_sellers)
     local tableName = tostring(Config.DB.table_name)
     local tableName2 = tostring(Config.DB.table_name2)
-    --local nameItems = tostring(Config.Points[id_sellers].Items)
     local response = MySQL.query.await('SELECT * FROM '..tableName..' WHERE id_seller = ?', {id_sellers})
-    print("SellItems", response, json.encode(response))
     if (response ~= null and #response >0) then
         for i, dbItem in pairs(response) do
-            print("dbItem", dbItem, json.encode(dbItem))
             for k, data in pairs(Config.Items[GetConfigItems(id_sellers)].items) do
                 local newAmount = dbItem.amount - data.amount
                 local price = data.amount * data.price
@@ -52,7 +48,7 @@ QBCore.Functions.CreateCallback('cruso-sellers:server:GetData', function(source,
         name
     })
     cb(response)
-    print('cruso-sellers:server:GetData', json.encode(response))
+    
 end)
 
 QBCore.Functions.CreateCallback('cruso-sellers:server:GetMoneyData', function(source, cb, index)
@@ -65,12 +61,20 @@ QBCore.Functions.CreateCallback('cruso-sellers:server:GetMoneyData', function(so
         name
     })
     cb(response)
-    print('cruso-sellers:server:GetMoneyData', json.encode(response))
+    
 end)
+
+QBCore.Functions.CreateCallback('cruso-sellers:server:isCanInteract', function(source, cb, index)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    print("isCanInteract", index, Config.Points[index].isbusy)
+    cb(Config.Points[index].isbusy)
+end)
+
 
 RegisterServerEvent('cruso-sellers:server:update')
 AddEventHandler('cruso-sellers:server:update', function(param, index, item, removeAmount)
-    print("cruso-sellers:server:update", removeAmount, json.encode(item))
+    
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local name = tostring(Config.Points[index].Id)
@@ -90,7 +94,7 @@ end)
 
 RegisterServerEvent('cruso-sellers:server:getMoney')
 AddEventHandler('cruso-sellers:server:getMoney', function(data)
-    print("cruso-sellers:server:getMoney", json.encode(data))
+    
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local tableName2 = tostring(Config.DB.table_name2)
@@ -104,6 +108,17 @@ AddEventHandler('cruso-sellers:server:getMoney', function(data)
         print("^3Script `cruso-sellers:server:getMoney` ^0updated data from  id_seller", json.encode(affectedRows))
 end)
 
+RegisterServerEvent('cruso-sellers:server:setBusy')
+AddEventHandler('cruso-sellers:server:setBusy', function(index, bolean)
+    print("cruso-sellers:server:setBusy", index, boolean)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    Config.Points[index].isbusy = bolean
+    TriggerClientEvent("cruso-sellers:client:setBusy", -1, Config.Points)
+    print("^3Script `cruso-sellers:server:setBusy` ^0updated Config.Points", index, Config.Points[index].isbusy)
+end)
+
+
 -----Threads----
 --Init--
 Citizen.CreateThread(function()
@@ -112,11 +127,13 @@ Citizen.CreateThread(function()
         TimerData[i] = {
             id_sellers = data.Id,
             items = data.items,
-            timer = GetGameTimer()
+            timer = GetGameTimer(),
+            isbusy = false
         }
     end
-    print("TimerData", json.encode(TimerData))
+    
  end) 
+
 --CoolDawn--
 Citizen.CreateThread(function()
    while true do
