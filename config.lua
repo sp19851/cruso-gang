@@ -41,7 +41,7 @@ Config.Items = {
         }
     },
     ["public2"] = {
-        cooldown = 60000*10,--множитель это количество минут,
+        cooldown = 60000*1,--множитель это количество минут,
         items = {
             
             ["kurkakola"] = {amount = 1, price = 2},

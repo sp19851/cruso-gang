@@ -179,7 +179,12 @@ local function openShop(index)
     QBCore.Functions.TriggerCallback('cruso-sellers:server:isCanInteract', function(result)
         if not result  then
             QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
-                local cash = result[1].account
+                local cash
+                if (result ~= null) then -- проверка на пустую запись об аккаунте у этой точки
+                 cash = result[1].account
+                else
+                    cash = 0
+                end
                 MenuList[#MenuList+1] = {menuId = 'shopMenu', index = index}
                 needControlMenu = true
                 lib.registerContext({
@@ -246,7 +251,7 @@ end
 
 local function deletePeds()
     if not pedSpawned then return end
-    for _, v in pairs(ShopPed) do
+    for _, v in pairs(Peds) do
         DeletePed(v)
     end
     pedSpawned = false
@@ -297,11 +302,9 @@ Citizen.CreateThread(function()
             local rigthmenu, index = IsRightMenu(id)
             if (rigthmenu) then
                 sleepControlMenu = 100
-                print("Config.Points[index]", Config.Points[index].isbusy)
                 if (Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
             else
                 local isFinded, index = GetIndexBusyPoint()
-                print("GetIndexBusyPoint", isFinded, index, Config.Points[index].isbusy)
                 if (isFinded and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
                 sleepControlMenu = 1000
                 needControlMenu = false

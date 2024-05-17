@@ -67,7 +67,6 @@ end)
 QBCore.Functions.CreateCallback('cruso-sellers:server:isCanInteract', function(source, cb, index)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    print("isCanInteract", index, Config.Points[index].isbusy)
     cb(Config.Points[index].isbusy)
 end)
 
@@ -110,7 +109,6 @@ end)
 
 RegisterServerEvent('cruso-sellers:server:setBusy')
 AddEventHandler('cruso-sellers:server:setBusy', function(index, bolean)
-    print("cruso-sellers:server:setBusy", index, boolean)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     Config.Points[index].isbusy = bolean
