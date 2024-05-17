@@ -77,8 +77,11 @@ function editItemMenu(index, item)
                                 clip = 'gesture_point'
                             },
                             
-                        }) then print('Do stuff when complete') else print('Do stuff when cancelled') end
-                        TriggerServerEvent('cruso-sellers:server:update', "put", index, item, tonumber(input[1]))
+                        }) then 
+                            print('Do stuff when complete') 
+                            TriggerServerEvent('cruso-sellers:server:update', "put", index, item, tonumber(input[1])) 
+                        else print('Do stuff when cancelled') end
+                        
                     else
                         QBCore.Functions.Notify('У Вас нет такого предмета или требуемого количества', 'error', 5000)
                     end
@@ -102,8 +105,11 @@ function editItemMenu(index, item)
                             clip = 'gesture_point'
                         },
                         
-                    }) then print('Do stuff when complete') else print('Do stuff when cancelled') end
-                    TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count)
+                    }) then 
+                        print('Do stuff when complete') 
+                        TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
+                    else print('Do stuff when cancelled') end
+                   
                 end,
             },
             {
