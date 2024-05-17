@@ -305,7 +305,7 @@ Citizen.CreateThread(function()
                 if (Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
             else
                 local isFinded, index = GetIndexBusyPoint()
-                if (isFinded and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
+                if (isFinded and index ~= nill and iConfig.Points[index] ~= nill and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
                 sleepControlMenu = 1000
                 needControlMenu = false
             end
