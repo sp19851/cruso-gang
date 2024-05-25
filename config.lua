@@ -29,6 +29,17 @@ Config.Points = {
     targetLabel = 'Взаимодействовать',
     targetIcon = 'fas fa-shopping-basket',
     isbusy = false
+ },
+ [3] = {
+    Id = 3,
+    coords = vector4(-629.13, 7.43, 41.0, 298.98), 
+    ped_model = 'IG_Avery',
+    animDic = 'abigail_mcs_1_concat-10',
+    anim ='player_zero_dual-10',
+    items = "public2", --названия набора итемов, должно совпадать с ключом в Config.Items
+    targetLabel = 'Взаимодействовать',
+    targetIcon = 'fas fa-shopping-basket',
+    isbusy = false
  }
 }
 -- !!!name Items element must  unique ---

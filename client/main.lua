@@ -186,7 +186,8 @@ local function openShop(index)
         if not result  then
             QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
                 local cash
-                if (result ~= null) then -- проверка на пустую запись об аккаунте у этой точки
+                print("result", json.encode(result))
+                if (result and #result > 0 ) then -- проверка на пустую запись об аккаунте у этой точки
                  cash = result[1].account
                 else
                     cash = 0
@@ -308,10 +309,10 @@ Citizen.CreateThread(function()
             local rigthmenu, index = IsRightMenu(id)
             if (rigthmenu) then
                 sleepControlMenu = 100
-                if (index ~= nill and Config.Points[index] ~= nill and Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
+                if (index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
             else
                 local isFinded, index = GetIndexBusyPoint()
-                if (isFinded and index ~= nill and Config.Points[index] ~= nill and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
+                if (isFinded and index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
                 sleepControlMenu = 1000
                 needControlMenu = false
             end
