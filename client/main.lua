@@ -1,15 +1,16 @@
 local QBCore = exports['qb-core']:GetCoreObject()
-local PlayerData = QBCore.Functions.GetPlayerData()
+--local PlayerData = QBCore.Functions.GetPlayerData()
 local pedSpawned = false
 local Peds = {}
 local MenuList = {}
-local needControlMenu = false
+local needControl = false
+--local isInteract = false
 local sleepControlMenu = 1000
 
 
 
 --Functions--
-local function IsRightMenu(id)
+local function GetIndexByIdMenu(id)
     for i, menu in pairs(MenuList) do
         if (menu.menuId == id) then
             return true, menu.index
@@ -17,6 +18,34 @@ local function IsRightMenu(id)
     end
     return false
 end
+
+local function SetBusy(menuId, boolean)
+    print("SetBusy menuid", menuid, Config.Points, Config.Points[index])
+    print("SetBusy boolean", boolean)
+    local bool, index = GetIndexByIdMenu(menuId)
+    print("SetBusy bool", boolean, "index", index)
+    if (bool and index and Config.Points and Config.Points[index]) then
+        --if (Config.Points[index].isbusy == boolean) then
+            needControl = boolean
+            TriggerServerEvent("cruso-sellers:server:setBusy", index, needControl)    
+        --else
+    end
+end
+
+    
+    --[[if (rigthmenu) then
+        sleepControlMenu = 100
+        --print("index", index, "isInteract", isInteract)
+        if (index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
+    else
+        local isFinded, index = GetIndexBusyPoint()
+        if (isFinded and index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
+        sleepControlMenu = 1000
+        --needControlMenu = false
+    end
+end]]
+
+
 
 local function GetIndexBusyPoint()
     for i, point in pairs(Config.Points) do
@@ -56,6 +85,10 @@ function editItemMenu(index, item)
     lib.registerContext({
         id = 'itemMenu',
         title = 'Настройка продажи '..GetItemLabel(item.name),
+        onExit = function()
+            print('close itemMenu')
+            SetBusy('itemMenu', false)
+        end,
         options = {
             {
                 title = 'Выставить дополнительное количество',
@@ -64,24 +97,19 @@ function editItemMenu(index, item)
                     if not input then return end
                     if QBCore.Functions.HasItem(item.name, tonumber(input[1])) then
                         item.count = item.count + tonumber(input[1])
-                        if lib.progressBar({
-                            duration = 10000,
-                            label = 'Передаем товар',
-                            useWhileDead = false,
-                            canCancel = false,
-                            disable = {
-                                car = true,
-                            },
-                            anim = {
-                                dict = 'gestures@f@standing@casual',
-                                clip = 'gesture_point'
-                            },
-                            
-                        }) then 
-                            print('Do stuff when complete') 
+                        QBCore.Functions.Progressbar('give', "Передаем товар", 10000, false, false, {
+                            disableMovement = true,
+                            disableCarMovement = true,
+                            disableMouse = true,
+                            disableCombat = true,
+                        }, {
+                            animDict = 'gestures@f@standing@casual',
+                            anim = 'gesture_point',
+                        }, {}, {}, 
+                        function()
                             TriggerServerEvent('cruso-sellers:server:update', "put", index, item, tonumber(input[1])) 
-                        else print('Do stuff when cancelled') end
-                        
+                            SetBusy('itemMenu',false)
+                        end)
                     else
                         QBCore.Functions.Notify('У Вас нет такого предмета или требуемого количества', 'error', 5000)
                     end
@@ -92,7 +120,8 @@ function editItemMenu(index, item)
             {
                 title = 'Забрать остатки: '..item.count..' шт.',
                 onSelect = function()
-                    if lib.progressBar({
+                  
+                    --[[if lib.progressBar({
                         duration = 10000,
                         label = 'Забираем товар',
                         useWhileDead = false,
@@ -108,7 +137,20 @@ function editItemMenu(index, item)
                     }) then 
                         print('Do stuff when complete') 
                         TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
-                    else print('Do stuff when cancelled') end
+                    else print('Do stuff when cancelled') end]]
+                    QBCore.Functions.Progressbar('take', "Забираем товар", 10000, false, false, {
+                        disableMovement = true,
+                        disableCarMovement = true,
+                        disableMouse = true,
+                        disableCombat = true,
+                    }, {
+                        animDict = 'gestures@f@standing@casual',
+                        anim = 'gesture_point',
+                    }, {}, {}, 
+                    function()
+                        TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
+                        SetBusy('itemMenu', false)
+                    end)
                    
                 end,
             },
@@ -121,6 +163,7 @@ function editItemMenu(index, item)
             }
         }
     })
+    SetBusy('itemMenu', true)
     lib.showContext('itemMenu')
 end
 
@@ -152,6 +195,10 @@ function productMenu(index)
             lib.registerContext({
                  id = 'productMenu',
                  title = 'Меню продаж',
+                 onExit = function()
+                    SetBusy('productMenu', false)
+                    print('close productMenu')
+                end,
                  options = _options
              })
         else 
@@ -176,9 +223,27 @@ function productMenu(index)
             })
 
         end
+        SetBusy('productMenu', true)
         lib.showContext('productMenu')
     end, index)
     
+end
+
+local function TakeMoney(index, cash)
+    SetBusy('shopMenu', true)
+    QBCore.Functions.Progressbar('cash', "Забираем деньги", 7500, false, false, {
+        disableMovement = true,
+        disableCarMovement = true,
+        disableMouse = true,
+        disableCombat = true,
+    }, {
+        animDict = 'gestures@f@standing@casual',
+        anim = 'gesture_point',
+    }, {}, {}, 
+    function()
+        TriggerServerEvent('cruso-sellers:server:getMoney', index, cash) 
+        SetBusy('shopMenu', false)
+    end)
 end
 
 local function openShop(index)
@@ -186,17 +251,20 @@ local function openShop(index)
         if not result  then
             QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
                 local cash
-                print("result", json.encode(result))
+                --print("result", json.encode(result))
                 if (result and #result > 0 ) then -- проверка на пустую запись об аккаунте у этой точки
                  cash = result[1].account
                 else
                     cash = 0
                 end
                 MenuList[#MenuList+1] = {menuId = 'shopMenu', index = index}
-                needControlMenu = true
                 lib.registerContext({
                     id = 'shopMenu',
                     title = 'Меню магазина',
+                    onExit = function()
+                        print('close shopMenu')
+                        SetBusy('shopMenu', false)
+                    end,
                     options = {
                     {
                         title = 'Товар на продажу',
@@ -211,15 +279,15 @@ local function openShop(index)
                         title = 'Забрать деньги',
                         description = 'Продано товаров на $'..cash,
                         icon = 'money-bill-1',
-                        serverEvent = 'cruso-sellers:server:getMoney',
-                        args = {
-                            index = index,
-                            cash = cash
-                          }
+                       
+                        onSelect = function()
+                            TakeMoney(index, cash)
+                        end,
                     },
                     
                     }
                 })
+                SetBusy('shopMenu', true)
                 lib.showContext('shopMenu')
             end, index)
         else
@@ -259,6 +327,7 @@ end
 local function deletePeds()
     if not pedSpawned then return end
     for _, v in pairs(Peds) do
+        print("deletePeds", v)
         DeletePed(v)
     end
     pedSpawned = false
@@ -268,16 +337,15 @@ end
 --Events--
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     Wait(2000)
-    local hudSettings = GetResourceKvpString('hudSettings')
-    if hudSettings then loadSettings(json.decode(hudSettings)) end
     PlayerData = QBCore.Functions.GetPlayerData()
     Wait(3000)
-    SetEntityHealth(PlayerPedId(), 200)
+    
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
     deletePeds()
-    PlayerData = {}
+    print('QBCore:Client:OnPlayerUnload')
+    --PlayerData = {}--
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
@@ -302,22 +370,46 @@ Citizen.CreateThread(function()
 end)   
 
 --IsMenuOpen---
-Citizen.CreateThread(function()
+/*Citizen.CreateThread(function()
     while true do
         if (needControlMenu) then
             local id = lib.getOpenContextMenu()
             local rigthmenu, index = IsRightMenu(id)
             if (rigthmenu) then
                 sleepControlMenu = 100
+                --print("index", index, "isInteract", isInteract)
                 if (index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
             else
                 local isFinded, index = GetIndexBusyPoint()
                 if (isFinded and index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
                 sleepControlMenu = 1000
-                needControlMenu = false
+                --needControlMenu = false
             end
         end
         Citizen.Wait(sleepControlMenu)
     end
     
+end)*/
+
+
+
+
+local function drawTxt(text, font, x, y, scale, r, g, b, a)
+    SetTextFont(font)
+    SetTextScale(scale, scale)
+    SetTextColour(r, g, b, a)
+    SetTextOutline()
+    SetTextCentre(1)
+    SetTextEntry('STRING')
+    AddTextComponentString(text)
+    DrawText(x, y)
+end
+
+--Debug---
+Citizen.CreateThread(function()
+    while true do
+        --DrawText(needControlMenu, 0.2, 0.5)
+        drawTxt(needControlMenu, 4, 0.5, 0.93, 0.50, 255, 255, 255, 180)
+        Citizen.Wait(0)
+    end
 end)

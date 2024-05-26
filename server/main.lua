@@ -25,11 +25,11 @@ local function SellItems(id_sellers)
                     local id = MySQL.insert.await('INSERT INTO '..tableName..' (id_seller, item, amount) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE amount = ?', {
                         tostring(id_sellers), dbItem.item, newAmount, newAmount
                     })
-                    print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
+                    --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
                     local id = MySQL.insert.await('INSERT INTO '..tableName2..' (id_seller, account) VALUES (?, account + ?) ON DUPLICATE KEY UPDATE account = account + ?', {
                         tostring(id_sellers), price, price
                     })
-                    print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
+                    --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
                 end
                 
             end
@@ -88,30 +88,29 @@ AddEventHandler('cruso-sellers:server:update', function(param, index, item, remo
     local id = MySQL.insert.await('INSERT INTO '..tableName..' (id_seller, item, amount) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE amount = ?', {
         tostring(index), item.name, item.count,  item.count
     })
-        print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)
+        --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)
 end)
 
 RegisterServerEvent('cruso-sellers:server:getMoney')
-AddEventHandler('cruso-sellers:server:getMoney', function(data)
+AddEventHandler('cruso-sellers:server:getMoney', function(index, cash)
     
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local tableName2 = tostring(Config.DB.table_name2)
-    local cash = data.cash
-    local index = data.index
+   
     Player.Functions.AddMoney('cash', cash, 'cruso-sellers')
     
     local affectedRows  = MySQL.update.await('UPDATE '..tableName2..' SET account = 0 WHERE id_seller = ?', {
         tostring(index) 
     })
-        print("^3Script `cruso-sellers:server:getMoney` ^0updated data from  id_seller", json.encode(affectedRows))
+        --print("^3Script `cruso-sellers:server:getMoney` ^0updated data from  id_seller", json.encode(affectedRows))
 end)
 
 RegisterServerEvent('cruso-sellers:server:setBusy')
-AddEventHandler('cruso-sellers:server:setBusy', function(index, bolean)
+AddEventHandler('cruso-sellers:server:setBusy', function(index, boolean)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    Config.Points[index].isbusy = bolean
+    Config.Points[index].isbusy = boolean
     TriggerClientEvent("cruso-sellers:client:setBusy", -1, Config.Points)
     print("^3Script `cruso-sellers:server:setBusy` ^0updated Config.Points", index, Config.Points[index].isbusy)
 end)
