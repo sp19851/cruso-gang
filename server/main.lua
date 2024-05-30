@@ -108,11 +108,17 @@ end)
 
 RegisterServerEvent('cruso-sellers:server:setBusy')
 AddEventHandler('cruso-sellers:server:setBusy', function(index, boolean)
+    --print("^3Script `cruso-sellers:server:setBusy` index", index, "bool", boolean)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     Config.Points[index].isbusy = boolean
     TriggerClientEvent("cruso-sellers:client:setBusy", -1, Config.Points)
     print("^3Script `cruso-sellers:server:setBusy` ^0updated Config.Points", index, Config.Points[index].isbusy)
+    
+    --[[for i,v in pairs(Config.Points) do
+        print("Config.Points", i, json.encode(v.isbusy))
+    end]]
+    
 end)
 
 

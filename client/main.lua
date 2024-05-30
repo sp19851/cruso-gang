@@ -20,10 +20,7 @@ local function GetIndexByIdMenu(id)
 end
 
 local function SetBusy(menuId, boolean)
-    print("SetBusy menuid", menuid, Config.Points, Config.Points[index])
-    print("SetBusy boolean", boolean)
     local bool, index = GetIndexByIdMenu(menuId)
-    print("SetBusy bool", boolean, "index", index)
     if (bool and index and Config.Points and Config.Points[index]) then
         --if (Config.Points[index].isbusy == boolean) then
             needControl = boolean
@@ -112,6 +109,7 @@ function editItemMenu(index, item)
                         end)
                     else
                         QBCore.Functions.Notify('У Вас нет такого предмета или требуемого количества', 'error', 5000)
+                        SetBusy('itemMenu',false)
                     end
                     
                     --productMenu(index)
@@ -120,38 +118,23 @@ function editItemMenu(index, item)
             {
                 title = 'Забрать остатки: '..item.count..' шт.',
                 onSelect = function()
-                  
-                    --[[if lib.progressBar({
-                        duration = 10000,
-                        label = 'Забираем товар',
-                        useWhileDead = false,
-                        canCancel = false,
-                        disable = {
-                            car = true,
-                        },
-                        anim = {
-                            dict = 'gestures@f@standing@casual',
-                            clip = 'gesture_point'
-                        },
-                        
-                    }) then 
-                        print('Do stuff when complete') 
-                        TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
-                    else print('Do stuff when cancelled') end]]
-                    QBCore.Functions.Progressbar('take', "Забираем товар", 10000, false, false, {
-                        disableMovement = true,
-                        disableCarMovement = true,
-                        disableMouse = true,
-                        disableCombat = true,
-                    }, {
-                        animDict = 'gestures@f@standing@casual',
-                        anim = 'gesture_point',
-                    }, {}, {}, 
-                    function()
-                        TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
-                        SetBusy('itemMenu', false)
-                    end)
-                   
+                    if (item.count) > 0 then
+                        QBCore.Functions.Progressbar('take', "Забираем товар", 10000, false, false, {
+                            disableMovement = true,
+                            disableCarMovement = true,
+                            disableMouse = true,
+                            disableCombat = true,
+                        }, {
+                            animDict = 'gestures@f@standing@casual',
+                            anim = 'gesture_point',
+                        }, {}, {}, 
+                        function()
+                            TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
+                            SetBusy('itemMenu', false)
+                        end)
+                    else
+                        QBCore.Functions.Notify('Так вроде нечего пока забирать...', 'error', 5000)
+                    end
                 end,
             },
             {
@@ -230,6 +213,7 @@ function productMenu(index)
 end
 
 local function TakeMoney(index, cash)
+    
     SetBusy('shopMenu', true)
     QBCore.Functions.Progressbar('cash', "Забираем деньги", 7500, false, false, {
         disableMovement = true,
@@ -281,7 +265,12 @@ local function openShop(index)
                         icon = 'money-bill-1',
                        
                         onSelect = function()
-                            TakeMoney(index, cash)
+                            if (tonumber(cash) > 0) then
+                                TakeMoney(index, cash)
+                            else
+                                QBCore.Functions.Notify('Бабок пока не накапало', 'error', 5000)
+                                SetBusy('shopMenu', false)
+                            end;
                         end,
                     },
                     
