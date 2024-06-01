@@ -66,19 +66,19 @@ function editItemMenu(index, item)
     MenuList[#MenuList+1] = {menuId = 'itemMenu', index = index}
     lib.registerContext({
         id = 'itemMenu',
-        title = 'Настройка продажи '..GetItemLabel(item.name),
+        title = LocaleReplace(Translations.setupSell.title, GetItemLabel(item.name)),
         onExit = function()
             SetBusy('itemMenu', false)
         end,
         options = {
             {
-                title = 'Выставить дополнительное количество',
+                title = Translations.setupSell.addItem,
                 onSelect = function()
-                    local input = lib.inputDialog('Сколько Вы ходите выставить?', {'Количество'})
+                    local input = lib.inputDialog(Translations.setupSell.howMuch, {Translations.setupSell.quantity})
                     if not input then return end
                     if QBCore.Functions.HasItem(item.name, tonumber(input[1])) then
                         item.count = item.count + tonumber(input[1])
-                        QBCore.Functions.Progressbar('give', "Передаем товар", 10000, false, false, {
+                        QBCore.Functions.Progressbar('give', Translations.setupSell.givingItem, 10000, false, false, {
                             disableMovement = true,
                             disableCarMovement = true,
                             disableMouse = true,
@@ -92,7 +92,7 @@ function editItemMenu(index, item)
                             SetBusy('itemMenu',false)
                         end)
                     else
-                        QBCore.Functions.Notify('У Вас нет такого предмета или требуемого количества', 'error', 5000)
+                        QBCore.Functions.Notify(Translations.setupSell.error, 'error', 5000)
                         SetBusy('itemMenu',false)
                     end
                     
@@ -100,10 +100,10 @@ function editItemMenu(index, item)
                 end,
             },
             {
-                title = 'Забрать остатки: '..item.count..' шт.',
+                title = LocaleReplace(Translations.leftovers.title, item.count),
                 onSelect = function()
                     if (item.count) > 0 then
-                        QBCore.Functions.Progressbar('take', "Забираем товар", 10000, false, false, {
+                        QBCore.Functions.Progressbar('take', Translations.leftovers.takeItem, 10000, false, false, {
                             disableMovement = true,
                             disableCarMovement = true,
                             disableMouse = true,
@@ -117,7 +117,7 @@ function editItemMenu(index, item)
                             
                         end)
                     else
-                        QBCore.Functions.Notify('Так вроде нечего пока забирать...', 'error', 5000)
+                        QBCore.Functions.Notify(Translations.leftovers.error, 'error', 5000)
                     end
                     SetBusy('itemMenu', false)
                 end,
@@ -152,7 +152,8 @@ function productMenu(index)
                  end
                  _options[i] = {
                      title = GetItemLabel(i),
-                     description = 'Стоимость за шт. - $'..product.price.. '. Остаток: '..product.count..' шт.',
+                     
+                     description = LocaleReplace(Translations.setupItem.description, {product.price, product.count}),
                      onSelect = function()
                          editItemMenu(index, product)
                      end,
@@ -162,7 +163,7 @@ function productMenu(index)
             MenuList[#MenuList+1] = {menuId = 'productMenu', index = index}
             lib.registerContext({
                  id = 'productMenu',
-                 title = 'Меню продаж',
+                 title = Translations.productMenu.title,
                  onExit = function()
                     SetBusy('productMenu', false)
                     
@@ -177,7 +178,7 @@ function productMenu(index)
                 product.count = 0
                 _options[i] = {
                     title = GetItemLabel(i),
-                    description = 'Стоимость за шт. - $'..product.price.. '. Остаток: '..product.count..' шт.',
+                    description = LocaleReplace(Translations.setupItem.description, {product.price, product.count}),
                     onSelect = function()
                         editItemMenu(index, product)
                     end,
@@ -186,7 +187,7 @@ function productMenu(index)
            MenuList[#MenuList+1] = {menuId = 'productMenu', index = index}
            lib.registerContext({
                 id = 'productMenu',
-                title = 'Меню продаж',
+                title = Translations.productMenu.title,
                 options = _options
             })
 
@@ -200,7 +201,7 @@ end
 local function TakeMoney(index, cash)
     
     SetBusy('shopMenu', true)
-    QBCore.Functions.Progressbar('cash', "Забираем деньги", 7500, false, false, {
+    QBCore.Functions.Progressbar('cash', Translations.cash.taking, 7500, false, false, {
         disableMovement = true,
         disableCarMovement = true,
         disableMouse = true,
@@ -229,14 +230,14 @@ local function openShop(index)
                 MenuList[#MenuList+1] = {menuId = 'shopMenu', index = index}
                 lib.registerContext({
                     id = 'shopMenu',
-                    title = 'Меню магазина',
+                    title = Translations.shop.title,
                     onExit = function()
                         SetBusy('shopMenu', false)
                     end,
                     options = {
                     {
-                        title = 'Товар на продажу',
-                        description = 'Настройка продаж',
+                        title = Translations.shop.forsale,
+                        description =  Translations.shop.forsaleDescription,
                         icon = 'rectangle-list',
                         --menu = 'productMenu',
                         onSelect = function()
@@ -244,15 +245,15 @@ local function openShop(index)
                         end,
                     },
                     {
-                        title = 'Забрать деньги',
-                        description = 'Продано товаров на $'..cash,
+                        title = Translations.shop.takecash,
+                        description = LocaleReplace(Translations.shop.takecashDescription,cash),
                         icon = 'money-bill-1',
                        
                         onSelect = function()
                             if (tonumber(cash) > 0) then
                                 TakeMoney(index, cash)
                             else
-                                QBCore.Functions.Notify('Бабок пока не накапало', 'error', 5000)
+                                QBCore.Functions.Notify(Translations.shop.error, 'error', 5000)
                                 SetBusy('shopMenu', false)
                                 
                             end;
@@ -266,7 +267,7 @@ local function openShop(index)
                 lib.showContext('shopMenu')
             end, index)
         else
-            QBCore.Functions.Notify('Парень не в настроении разговаривать, подойдите позже', 'error', 5000)
+            QBCore.Functions.Notify(Translations.shop.busy, 'error', 5000)
         end
     end, index)
     
@@ -358,11 +359,3 @@ local function drawTxt(text, font, x, y, scale, r, g, b, a)
     DrawText(x, y)
 end
 
---Debug---
-Citizen.CreateThread(function()
-    while true do
-        --DrawText(needControlMenu, 0.2, 0.5)
-        drawTxt(needControlMenu, 4, 0.5, 0.93, 0.50, 255, 255, 255, 180)
-        Citizen.Wait(0)
-    end
-end)
