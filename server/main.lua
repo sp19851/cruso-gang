@@ -13,23 +13,26 @@ local function GetConfigItems(id_sellers)
 end
 
 local function SellItems(id_sellers)
+    --print("--SellItems-- id_sellers", id_sellers)
     local tableName = tostring(Config.DB.table_name)
     local tableName2 = tostring(Config.DB.table_name2)
     local response = MySQL.query.await('SELECT * FROM '..tableName..' WHERE id_seller = ?', {id_sellers})
     if (response ~= null and #response >0) then
         for i, dbItem in pairs(response) do
             for k, data in pairs(Config.Items[GetConfigItems(id_sellers)].items) do
-                local newAmount = dbItem.amount - data.amount
-                local price = data.amount * data.price
-                if (newAmount >= 0) then
-                    local id = MySQL.insert.await('INSERT INTO '..tableName..' (id_seller, item, amount) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE amount = ?', {
-                        tostring(id_sellers), dbItem.item, newAmount, newAmount
-                    })
-                    --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
-                    local id = MySQL.insert.await('INSERT INTO '..tableName2..' (id_seller, account) VALUES (?, account + ?) ON DUPLICATE KEY UPDATE account = account + ?', {
-                        tostring(id_sellers), price, price
-                    })
-                    --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
+                if (dbItem.item == k) then
+                    local newAmount = dbItem.amount - data.amount
+                    local price = data.amount * data.price
+                    if (newAmount >= 0) then
+                        local id = MySQL.insert.await('INSERT INTO '..tableName..' (id_seller, item, amount) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE amount = ?', {
+                            tostring(id_sellers), dbItem.item, newAmount, newAmount
+                        })
+                        --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
+                        local id = MySQL.insert.await('INSERT INTO '..tableName2..' (id_seller, account) VALUES (?, account + ?) ON DUPLICATE KEY UPDATE account = account + ?', {
+                            tostring(id_sellers), price, price
+                        })
+                        --print("^3Script `cruso-sellers:server:update` ^0updated data from  id_seller", id)  
+                    end
                 end
                 
             end

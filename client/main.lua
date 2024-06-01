@@ -29,21 +29,6 @@ local function SetBusy(menuId, boolean)
     end
 end
 
-    
-    --[[if (rigthmenu) then
-        sleepControlMenu = 100
-        --print("index", index, "isInteract", isInteract)
-        if (index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
-    else
-        local isFinded, index = GetIndexBusyPoint()
-        if (isFinded and index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
-        sleepControlMenu = 1000
-        --needControlMenu = false
-    end
-end]]
-
-
-
 local function GetIndexBusyPoint()
     for i, point in pairs(Config.Points) do
         if (point.isbusy) then
@@ -83,7 +68,6 @@ function editItemMenu(index, item)
         id = 'itemMenu',
         title = 'Настройка продажи '..GetItemLabel(item.name),
         onExit = function()
-            print('close itemMenu')
             SetBusy('itemMenu', false)
         end,
         options = {
@@ -130,11 +114,12 @@ function editItemMenu(index, item)
                         }, {}, {}, 
                         function()
                             TriggerServerEvent('cruso-sellers:server:update', "give", index, item, item.count) 
-                            SetBusy('itemMenu', false)
+                            
                         end)
                     else
                         QBCore.Functions.Notify('Так вроде нечего пока забирать...', 'error', 5000)
                     end
+                    SetBusy('itemMenu', false)
                 end,
             },
             {
@@ -180,7 +165,7 @@ function productMenu(index)
                  title = 'Меню продаж',
                  onExit = function()
                     SetBusy('productMenu', false)
-                    print('close productMenu')
+                    
                 end,
                  options = _options
              })
@@ -228,6 +213,7 @@ local function TakeMoney(index, cash)
         TriggerServerEvent('cruso-sellers:server:getMoney', index, cash) 
         SetBusy('shopMenu', false)
     end)
+    
 end
 
 local function openShop(index)
@@ -235,7 +221,6 @@ local function openShop(index)
         if not result  then
             QBCore.Functions.TriggerCallback('cruso-sellers:server:GetMoneyData', function(result)
                 local cash
-                --print("result", json.encode(result))
                 if (result and #result > 0 ) then -- проверка на пустую запись об аккаунте у этой точки
                  cash = result[1].account
                 else
@@ -246,7 +231,6 @@ local function openShop(index)
                     id = 'shopMenu',
                     title = 'Меню магазина',
                     onExit = function()
-                        print('close shopMenu')
                         SetBusy('shopMenu', false)
                     end,
                     options = {
@@ -270,7 +254,9 @@ local function openShop(index)
                             else
                                 QBCore.Functions.Notify('Бабок пока не накапало', 'error', 5000)
                                 SetBusy('shopMenu', false)
+                                
                             end;
+                          
                         end,
                     },
                     
@@ -316,7 +302,6 @@ end
 local function deletePeds()
     if not pedSpawned then return end
     for _, v in pairs(Peds) do
-        print("deletePeds", v)
         DeletePed(v)
     end
     pedSpawned = false
@@ -333,8 +318,7 @@ end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
     deletePeds()
-    print('QBCore:Client:OnPlayerUnload')
-    --PlayerData = {}--
+    PlayerData = {}
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
@@ -358,27 +342,7 @@ Citizen.CreateThread(function()
     pedSpawned = true 
 end)   
 
---IsMenuOpen---
-/*Citizen.CreateThread(function()
-    while true do
-        if (needControlMenu) then
-            local id = lib.getOpenContextMenu()
-            local rigthmenu, index = IsRightMenu(id)
-            if (rigthmenu) then
-                sleepControlMenu = 100
-                --print("index", index, "isInteract", isInteract)
-                if (index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy == false) then TriggerServerEvent("cruso-sellers:server:setBusy", index, true) end
-            else
-                local isFinded, index = GetIndexBusyPoint()
-                if (isFinded and index ~= nil and Config.Points[index] ~= nil and Config.Points[index].isbusy) then TriggerServerEvent("cruso-sellers:server:setBusy", index, false) end
-                sleepControlMenu = 1000
-                --needControlMenu = false
-            end
-        end
-        Citizen.Wait(sleepControlMenu)
-    end
-    
-end)*/
+
 
 
 
